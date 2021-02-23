@@ -93,38 +93,56 @@ public class Servidor {
 
 					Integer numProducto = Integer.parseInt(producto[1]);
 					Integer restarUnidades = Integer.parseInt(producto[2]);
-
-					while (rs.next()) {
-						p.setID_Producto(rs.getInt("ID_Producto"));
-						p.setNombre_Producto(rs.getString("Nombre_Producto"));
-						p.setPrecio_Venta(rs.getInt("Precio_Venta"));
-						p.setPrecio_Proveedor(rs.getInt("Precio_Proveedor"));
-						p.setCantidad_Stock(rs.getInt("Cantidad_Stock"));
-						
-						if (p.getCantidad_Stock() != 0 && p.getCantidad_Stock() >= restarUnidades) {
-							Integer resta = p.getCantidad_Stock() - restarUnidades;
-							String query2 = "UPDATE producto SET Cantidad_Stock = " + resta + " WHERE ID_Producto = 2";
-							stm.executeUpdate(query2);
-							System.out.println("Se ha restado el stock al producto.");
-							for(int i = 0;i<=restarUnidades;i++) {
-								System.out.println(java.time.LocalDate.now());
-								String query3 = "INSERT INTO compra VALUES ('"+numProducto+"','"+java.time.LocalDate.now()+"')";
-								stm.executeUpdate(query3);
-								System.out.println("Se ha añadido a la base de datos las compras.");
-							}
+					try {
+						while (rs.next()) {
+							p.setID_Producto(rs.getInt("ID_Producto"));
+							p.setNombre_Producto(rs.getString("Nombre_Producto"));
+							p.setPrecio_Venta(rs.getInt("Precio_Venta"));
+							p.setPrecio_Proveedor(rs.getInt("Precio_Proveedor"));
+							p.setCantidad_Stock(rs.getInt("Cantidad_Stock"));
 							
-							if(resta == 0) {
-								try {
-									enviarConGMail("LaQueSeHaLiado@SOS.com","Prueba","Esto es una prueba");
-								} catch(NoClassDefFoundError e) {
-									System.out.println("No se ha podido enviar el correo, pero se ha realizado la operacion.");
-								}
-							}
+							if (p.getCantidad_Stock() != 0 && p.getCantidad_Stock() >= restarUnidades) {
+								Integer resta = p.getCantidad_Stock() - restarUnidades;
+								String query2 = "UPDATE producto SET Cantidad_Stock = " + resta + " WHERE ID_Producto = 2";
+								stm.executeUpdate(query2);
+								System.out.println("Se ha restado el stock al producto.");
+								for(int i = 0;i<=restarUnidades;i++) {
+									String query3 = "INSERT INTO compra VALUES (0,"+numProducto+",'"+java.time.LocalDate.now()+"')";
+									stm.executeUpdate(query3);
 
-						} else {
-							System.out.println("No se ha podido realizar el encargo porque no hay stock.");
+								}
+								System.out.println("Se ha añadido a la base de datos las compras.");
+								
+								if(resta == 0) {
+									try {
+										enviarConGMail("clcriado0@gmail.com","Prueba","Esto es una prueba");
+									} catch(NoClassDefFoundError e) {
+										System.out.println("No se ha podido enviar el correo, pero se ha realizado la operacion.");
+									}
+								}
+
+							} else {
+								System.out.println("No se ha podido realizar el encargo porque no hay stock.");
+							}
 						}
+					}catch(SQLException e) {
+						
 					}
+
+				} else if (mensajeRecibido.contains("Ganado")) {
+					String query4 = "SELECT (producto.Precio_Venta-producto.Precio_Proveedor) *(ID_Compra) as 'Dinero ganado por Producto', NumProducto FROM compra JOIN producto ON compra.NumProducto = producto.ID_Producto WHERE Fecha = '2021-02-23' GROUP BY NumProducto";
+					
+					stm = con.createStatement();
+					rs = stm.executeQuery(query4);
+					
+					System.out.println("Dia "+ java.time.LocalDate.now()+ " se ha generado:");
+					
+					while(rs.next()) {
+						System.out.println("Producto numero: "+ rs.getString("NumProducto"));
+						System.out.println("Dinero Generado: "+ rs.getString("Dinero ganado por Producto"));
+						System.out.println("");
+					}
+					
 				}
 			}
 		}
@@ -155,7 +173,7 @@ public class Servidor {
 	    Properties props = System.getProperties();
 	    props.put("mail.smtp.host", "smtp.gmail.com");  //El servidor SMTP de Google
 	    props.put("mail.smtp.user", remitente);
-	    props.put("mail.smtp.clave", "Passswrd");    //La clave de la cuenta
+	    props.put("mail.smtp.clave", clave);    //La clave de la cuenta
 	    props.put("mail.smtp.auth", "true");    //Usar autenticación mediante usuario y clave
 	    props.put("mail.smtp.starttls.enable", "true"); //Para conectar de manera segura al servidor SMTP
 	    props.put("mail.smtp.port", "587"); //El puerto SMTP seguro de Google

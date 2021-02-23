@@ -86,6 +86,9 @@ public class Caja1 {
 						// SI LA OPCION ES 2 ESPERAMOS A RECIBIR UN MENSAJE.
 						else if (opcion.equals("2")) {
 							opcion = null;
+							String ganado = "Ganado";
+
+							flujoSalida.writeUTF(ganado);
 							
 						}
 
